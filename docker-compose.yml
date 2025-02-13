@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - shopsmart-network
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+      - payment-service
+      - notification-service
+
   mongodb:
     image: mongo:latest
     ports:
@@ -21,7 +36,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - shopsmart-network
     healthcheck:
