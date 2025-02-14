@@ -152,10 +152,10 @@ const Products: React.FC = () => {
   }
 
   return (
-    <Container>
-      <Box sx={{ my: 4 }}>
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={4}>
+    <Container maxWidth={false}>
+      <Box sx={{ my: 4, maxWidth: '1200px', mx: 'auto' }}>
+        <Grid container spacing={3} sx={{ mb: 4 }} justifyContent="center">
+          <Grid item xs={12} sm={4} md={3}>
             <TextField
               fullWidth
               label="Search Products"
@@ -163,7 +163,7 @@ const Products: React.FC = () => {
               onChange={handleSearchChange}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={4} md={3}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select value={category} onChange={handleCategoryChange} label="Category">
@@ -175,7 +175,7 @@ const Products: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={4} md={3}>
             <FormControl fullWidth>
               <InputLabel>Sort By</InputLabel>
               <Select
@@ -191,9 +191,9 @@ const Products: React.FC = () => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} justifyContent="center">
           {currentProducts.map((product) => (
-            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3} xl={2}>
               <Card
                 sx={{
                   height: '100%',
@@ -201,6 +201,8 @@ const Products: React.FC = () => {
                   flexDirection: 'column',
                   '&:hover': {
                     boxShadow: 6,
+                    transform: 'translateY(-4px)',
+                    transition: 'transform 0.2s ease-in-out',
                   },
                 }}
               >

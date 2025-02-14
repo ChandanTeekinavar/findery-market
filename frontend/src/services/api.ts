@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { mockProducts } from './mockData';
 
 const createAPI = (baseURL: string) => {
   const api = axios.create({
@@ -54,39 +55,67 @@ export const authService = {
 // Product Service
 export const productService = {
   getProducts: async () => {
-    const response = await productAPI.get('/products');
-    return response.data;
+    // For now, return mock data instead of making API call
+    return Promise.resolve(mockProducts);
   },
   getProduct: async (id: number) => {
-    const response = await productAPI.get(`/products/${id}`);
-    return response.data;
+    // Find product in mock data
+    const product = mockProducts.find(p => p.id === id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return Promise.resolve(product);
   },
   createProduct: async (productData: any) => {
-    const response = await productAPI.post('/products', productData);
-    return response.data;
+    // Mock create product
+    return Promise.resolve({ ...productData, id: Math.random() });
   },
 };
 
 // Order Service
 export const orderService = {
   createOrder: async (orderData: any) => {
-    const response = await orderAPI.post('/orders', orderData);
-    return response.data;
+    // Mock successful order creation
+    return Promise.resolve({
+      id: Math.random().toString(36).substr(2, 9),
+      userId: 'user123',
+      items: orderData.items,
+      totalAmount: orderData.totalAmount,
+      shippingAddress: orderData.shippingAddress,
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+      paymentStatus: 'paid',
+    });
   },
   getOrder: async (id: number) => {
-    const response = await orderAPI.get(`/orders/${id}`);
-    return response.data;
+    // Mock order data
+    return Promise.resolve({
+      id,
+      userId: 'user123',
+      items: [],
+      totalAmount: 0,
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+    });
   },
-  getUserOrders: async (userId: string) => {
-    const response = await orderAPI.get(`/orders/user/${userId}`);
-    return response.data;
+  getUserOrders: async (_userId: string) => {
+    // Mock user orders - using _userId to indicate intentionally unused parameter
+    return Promise.resolve([]);
   },
 };
 
 // Payment Service
 export const paymentService = {
   processPayment: async (paymentData: any) => {
-    const response = await paymentAPI.post('/payments', paymentData);
-    return response.data;
+    // Mock successful payment response
+    return Promise.resolve({
+      success: true,
+      transactionId: `TRANS_${Math.random().toString(36).substr(2, 9)}`,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      status: 'completed',
+      timestamp: new Date().toISOString(),
+      clientSecret: `secret_${Math.random().toString(36).substr(2, 9)}`,
+    });
   },
 }; 

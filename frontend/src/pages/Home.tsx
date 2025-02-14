@@ -40,10 +40,10 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <Container>
-      <Box sx={{ my: 4, textAlign: 'center' }}>
+    <Container maxWidth={false}>
+      <Box sx={{ my: 4, textAlign: 'center', maxWidth: '1200px', mx: 'auto' }}>
         <Typography variant="h3" component="h1" gutterBottom>
-          Welcome to ShopSmart
+          Welcome to FinderyMart
         </Typography>
         <Typography variant="h5" color="text.secondary" paragraph>
           Your one-stop shop for all your needs
@@ -54,23 +54,30 @@ const Home: React.FC = () => {
           size="large"
           component={RouterLink}
           to="/products"
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, mb: 6 }}
         >
           Shop Now
         </Button>
-      </Box>
 
-      <Box sx={{ my: 6 }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{ mt: 6 }}>
           Featured Products
         </Typography>
         {loading ? (
           <Typography>Loading...</Typography>
         ) : (
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {featuredProducts.map((product) => (
-              <Grid item key={product.id} xs={12} sm={6} md={4}>
-                <Card>
+              <Grid item key={product.id} xs={12} sm={6} md={4} lg={3} xl={2}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    '&:hover': {
+                      boxShadow: 6,
+                      transform: 'translateY(-4px)',
+                      transition: 'transform 0.2s ease-in-out',
+                    },
+                  }}
+                >
                   <CardMedia
                     component="img"
                     height="200"

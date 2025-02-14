@@ -10,6 +10,7 @@ import {
   Badge,
   IconButton,
   Box,
+  Link,
 } from '@mui/material';
 import {
   ShoppingCart as CartIcon,
@@ -34,8 +35,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <>
-      <AppBar position="static">
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <AppBar position="fixed">
         <Toolbar>
           <Typography
             variant="h6"
@@ -43,7 +44,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             to="/"
             sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}
           >
-            ShopSmart
+            FinderyMart
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -91,10 +92,42 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {children}
-      </Container>
-    </>
+      <Box component="main" sx={{ flexGrow: 1, width: '100%', mt: 8 }}>
+        <Container maxWidth={false} sx={{ py: 4, px: { xs: 2, sm: 4 } }}>
+          {children}
+        </Container>
+      </Box>
+
+      <Box
+        component="footer"
+        sx={{
+          py: 3,
+          px: 2,
+          mt: 'auto',
+          backgroundColor: (theme) => theme.palette.grey[100],
+          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Container maxWidth={false}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="right"
+            sx={{ fontStyle: 'italic' }}
+          >
+            Developed by{' '}
+            <Link
+              href="https://github.com/chandanteekinavar"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ fontWeight: 'bold' }}
+            >
+              Chandan Teekinavar
+            </Link>
+          </Typography>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 
