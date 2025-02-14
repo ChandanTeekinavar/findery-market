@@ -216,4 +216,4 @@ Common issues and solutions:
 
 - Developer: Chandan Teekinavar
 - GitHub: [chandanteekinavar](https://github.com/chandanteekinavar)
-- LinkedIn: [chandanteekinavar](www.linkedin.com/in/chandan-teekinavar)
+- LinkedIn: [chandanteekinavar](https://www.linkedin.com/in/chandan-teekinavar/)
