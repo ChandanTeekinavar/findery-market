@@ -217,3 +217,245 @@ Common issues and solutions:
 - Developer: Chandan Teekinavar
 - GitHub: [chandanteekinavar](https://github.com/chandanteekinavar)
 - LinkedIn: [chandanteekinavar](https://www.linkedin.com/in/chandan-teekinavar/)
+
+## Technical Architecture
+
+### Microservices Overview
+
+The application is built using a microservices architecture with the following services:
+
+#### 1. Frontend Service (Port: 80)
+- **Technology**: React, TypeScript, Material-UI
+- **Purpose**: Serves the user interface
+- **Key Features**:
+  - Server-side rendered React application
+  - Redux for state management
+  - Material-UI components
+  - Responsive design
+- **Dependencies**: Communicates with all backend services through REST APIs
+- **Container**: Nginx for static file serving
+
+#### 2. User Service (Port: 3001)
+- **Technology**: Node.js, Express, MongoDB
+- **Purpose**: Handles user authentication and profile management
+- **Key Features**:
+  - User registration and login
+  - JWT authentication
+  - Profile management
+  - Password reset functionality
+- **Database**: MongoDB
+- **Dependencies**: None (Independent service)
+- **APIs**:
+  - POST /api/auth/login
+  - POST /api/auth/register
+  - GET /api/users/profile
+  - PUT /api/users/profile
+
+#### 3. Product Service (Port: 3002)
+- **Technology**: Node.js, Express, PostgreSQL
+- **Purpose**: Manages product catalog and inventory
+- **Key Features**:
+  - Product CRUD operations
+  - Category management
+  - Search and filtering
+  - Inventory tracking
+- **Database**: PostgreSQL
+- **Dependencies**: None (Independent service)
+- **APIs**:
+  - GET /api/products
+  - GET /api/products/:id
+  - GET /api/products/category/:category
+
+#### 4. Order Service (Port: 3003)
+- **Technology**: Node.js, Express, PostgreSQL
+- **Purpose**: Handles order processing and management
+- **Key Features**:
+  - Order creation and management
+  - Order status tracking
+  - Order history
+- **Database**: PostgreSQL
+- **Dependencies**:
+  - Product Service (for inventory updates)
+  - Payment Service (for payment processing)
+  - Notification Service (for order updates)
+- **APIs**:
+  - POST /api/orders
+  - GET /api/orders/:id
+  - GET /api/orders/user/:userId
+
+#### 5. Payment Service (Port: 3004)
+- **Technology**: Node.js, Express
+- **Purpose**: Handles payment processing
+- **Key Features**:
+  - Cash on Delivery processing
+  - Payment status tracking
+  - Mock payment integration
+- **Database**: PostgreSQL
+- **Dependencies**:
+  - Order Service (for order updates)
+  - Notification Service (for payment confirmations)
+- **APIs**:
+  - POST /api/payments
+  - GET /api/payments/:id
+
+#### 6. Notification Service (Port: 3005)
+- **Technology**: Node.js, Express, RabbitMQ
+- **Purpose**: Manages all system notifications
+- **Key Features**:
+  - Email notifications
+  - Order status updates
+  - Payment confirmations
+- **Message Broker**: RabbitMQ
+- **Dependencies**: Consumes events from all services
+- **APIs**:
+  - POST /api/notifications/email
+
+### Service Communication
+
+```
+                                   ┌─────────────────┐
+                                   │                 │
+                                   │    Frontend     │
+                                   │    (Port 80)    │
+                                   │                 │
+                                   └────────┬────────┘
+                                           │
+                                           ▼
+                     ┌────────────────────────────────────────┐
+                     │           Nginx Reverse Proxy          │
+                     └────────────────────────────────────────┘
+                                           │
+                     ┌────────────────────────────────────────┐
+                     ▼                     ▼                   ▼
+              ┌──────────────┐    ┌───────────────┐    ┌────────────┐
+              │              │    │               │    │            │
+              │ User Service │    │Product Service│    │Order Service│
+              │  (Port 3001) │    │ (Port 3002)  │    │(Port 3003) │
+              │              │    │               │    │            │
+              └──────┬───────┘    └───────┬───────┘    └─────┬──────┘
+                     │                    │                   │
+                     │                    │                   │
+              ┌──────▼────────────────────▼───────────────────▼──────┐
+              │                     Message Bus                       │
+              │                     (RabbitMQ)                       │
+              └──────▲────────────────────▲───────────────────▲──────┘
+                     │                    │                   │
+              ┌──────┴───────┐    ┌──────┴───────┐   ┌──────┴───────┐
+              │              │    │              │   │              │
+              │Payment Service│    │Notification  │   │  Database    │
+              │ (Port 3004)  │    │   Service    │   │  Services    │
+              │              │    │ (Port 3005)  │   │              │
+              └──────────────┘    └──────────────┘   └──────────────┘
+```
+
+### Data Flow
+
+1. **User Authentication Flow**:
+   - Frontend → User Service: Authentication request
+   - User Service → MongoDB: Verify credentials
+   - User Service → Frontend: JWT token
+   - Frontend: Stores token in localStorage
+
+2. **Product Browsing Flow**:
+   - Frontend → Product Service: Product list request
+   - Product Service → PostgreSQL: Fetch products
+   - Product Service → Frontend: Product data
+   - Frontend: Renders product list
+
+3. **Order Processing Flow**:
+   - Frontend → Order Service: Create order request
+   - Order Service → Product Service: Check inventory
+   - Order Service → Payment Service: Process payment
+   - Payment Service → Order Service: Payment confirmation
+   - Order Service → Notification Service: Order confirmation
+   - Notification Service → RabbitMQ: Email notification
+
+### Database Schema
+
+#### MongoDB (User Service)
+```javascript
+User {
+  _id: ObjectId,
+  email: String,
+  password: String (hashed),
+  firstName: String,
+  lastName: String,
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
+#### PostgreSQL (Product Service)
+```sql
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255),
+  description TEXT,
+  price DECIMAL(10,2),
+  stock INTEGER,
+  category VARCHAR(100),
+  image_url TEXT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+```
+
+#### PostgreSQL (Order Service)
+```sql
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  total_amount DECIMAL(10,2),
+  status VARCHAR(50),
+  shipping_address JSONB,
+  payment_status VARCHAR(50),
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+CREATE TABLE order_items (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER,
+  product_id INTEGER,
+  quantity INTEGER,
+  price DECIMAL(10,2)
+);
+```
+
+### Infrastructure
+
+#### Docker Configuration
+- Each service has its own Dockerfile
+- Services are orchestrated using docker-compose
+- Shared network for inter-service communication
+- Volume mounts for persistent data
+
+#### Nginx Configuration
+- Serves as reverse proxy
+- Routes requests to appropriate services
+- Handles SSL termination
+- Serves static frontend files
+
+#### Message Queue
+- RabbitMQ for asynchronous communication
+- Used for:
+  - Order notifications
+  - Inventory updates
+  - Email notifications
+
+### Security Measures
+
+1. **Authentication**:
+   - JWT-based authentication
+   - Token expiration
+   - Secure password hashing
+
+2. **API Security**:
+   - CORS configuration
+   - Rate limiting
+   - Request validation
+
+3. **Data Security**:
+   - Encrypted database connections
+   - Secure environment variables
+   - Input sanitization
