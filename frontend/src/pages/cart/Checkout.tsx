@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -12,10 +12,17 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  Alert,
   Divider,
+  CircularProgress,
 } from '@mui/material';
 import { RootState } from '../../store';
-import { orderService, paymentService } from '../../services/api';
+import { orderService } from '../../services/api';
 import { clearCart, CartItem } from '../../store/slices/cartSlice';
 
 interface ShippingForm {
@@ -29,7 +36,7 @@ interface ShippingForm {
   phone: string;
 }
 
-const steps = ['Shipping Information', 'Review Order', 'Payment'];
+const steps = ['Shipping Information', 'Review Order', 'Order Confirmation'];
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +47,8 @@ const Checkout: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [shippingData, setShippingData] = useState<ShippingForm>({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -51,40 +60,59 @@ const Checkout: React.FC = () => {
     phone: '',
   });
 
+  useEffect(() => {
+    if (items.length === 0 && !orderPlaced) {
+      navigate('/cart');
+    }
+  }, [items, navigate, orderPlaced]);
+
+  if (items.length === 0 && !orderPlaced) {
+    return (
+      <Container maxWidth="md">
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const requiredFields = Object.values(shippingData);
+    if (requiredFields.some(field => !field)) {
+      setError('Please fill in all fields');
+      return;
+    }
+    setError(null);
     setActiveStep(1);
   };
 
-  const handlePayment = async () => {
+  const handlePlaceOrder = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Create payment intent
-      const paymentResponse = await paymentService.processPayment({
-        amount: Math.round(total * 100), // Convert to cents
-        currency: 'usd',
-      });
-
-      // Create order
-      const orderResponse = await orderService.createOrder({
-        items: items.map((item: CartItem) => ({
+      const mockOrder = {
+        orderId: Math.random().toString(36).substr(2, 9),
+        items: items.map(item => ({
           productId: item.id,
           quantity: item.quantity,
           price: item.price,
         })),
         totalAmount: total,
         shippingAddress: shippingData,
-        paymentIntentId: paymentResponse.clientSecret,
-      });
+        paymentMethod: paymentMethod,
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+      };
 
-      // Clear cart and redirect to success page
+      await orderService.createOrder(mockOrder);
+      setOrderPlaced(true);
+      setActiveStep(2);
       dispatch(clearCart());
-      navigate('/order-success', { state: { orderId: orderResponse.id } });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during checkout');
-      setActiveStep(1);
+      setError('Failed to place order. Please try again.');
+      console.error('Order error:', err);
     } finally {
       setLoading(false);
     }
@@ -229,19 +257,58 @@ const Checkout: React.FC = () => {
             <Typography variant="h6">${total.toFixed(2)}</Typography>
           </Grid>
         </Grid>
+
+        <Grid item xs={12}>
+          <FormControl component="fieldset" sx={{ mt: 2 }}>
+            <FormLabel component="legend">Payment Method</FormLabel>
+            <RadioGroup
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <FormControlLabel
+                value="cod"
+                control={<Radio />}
+                label="Cash on Delivery"
+              />
+            </RadioGroup>
+          </FormControl>
+        </Grid>
       </Grid>
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
         <Button onClick={handleBack}>Back</Button>
         <Button
           variant="contained"
           color="primary"
-          onClick={handlePayment}
+          onClick={handlePlaceOrder}
           disabled={loading}
         >
-          {loading ? 'Processing...' : 'Proceed to Payment'}
+          {loading ? 'Processing...' : 'Place Order'}
         </Button>
       </Box>
     </>
+  );
+
+  const renderOrderConfirmation = () => (
+    <Box sx={{ textAlign: 'center', py: 4 }}>
+      <Typography variant="h4" color="primary" gutterBottom>
+        Order Placed Successfully!
+      </Typography>
+      <Typography variant="body1" paragraph>
+        Thank you for shopping with FinderyMart. Your order has been confirmed.
+      </Typography>
+      <Typography variant="body2" color="text.secondary" paragraph>
+        You will receive an order confirmation email shortly.
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => navigate('/products')}
+        sx={{ mt: 2 }}
+      >
+        Continue Shopping
+      </Button>
+    </Box>
   );
 
   return (
@@ -260,13 +327,14 @@ const Checkout: React.FC = () => {
         </Stepper>
 
         {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
-          </Typography>
+          </Alert>
         )}
 
         {activeStep === 0 && renderShippingForm()}
         {activeStep === 1 && renderOrderReview()}
+        {activeStep === 2 && renderOrderConfirmation()}
       </Paper>
     </Container>
   );
