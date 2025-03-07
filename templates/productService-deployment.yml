@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "findery-market.fullname" . }}-product-service
+  labels:
+    {{- include "findery-market.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.productService.autoscaling.enabled }}
+  replicas: {{ .Values.productService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "findery-market.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.productService.podAnnotations }}
+      app.kubernetes.io/component: product-service
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "findery-market.labels" . | nindent 8 }}
+        {{- with .Values.productService.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: product-service
+    spec:
+      {{- with .Values.productService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.productService.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.productService.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.productService.image.repository }}:{{ .Values.productService.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.productService.image.pullPolicy }}
+          env:
+            - name: databasePassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.productService.env.secretName }}
+                  key: databasePassword
+            - name: DATABASE_URL
+              value: postgresql://{{.Values.productService.env.databaseUsername}}:$(databasePassword)@{{ .Release.Name }}-postgresql:5432/{{.Values.productService.env.databaseName}}
+            - name: PORT
+              value: {{ .Values.productService.service.port | quote}}
+            # - name: REDIS_URL
+            #   value: 
+          ports:
+            - name: http
+              containerPort: {{ .Values.productService.service.port }}
+              protocol: TCP
+          {{- with .Values.productService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.productService.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.productService.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.productService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.productService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.productService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

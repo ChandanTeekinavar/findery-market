@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "findery-market.fullname" . }}-payment-service
+  labels:
+    {{- include "findery-market.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.paymentService.autoscaling.enabled }}
+  replicas: {{ .Values.paymentService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "findery-market.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: payment-service
+  template:
+    metadata:
+      {{- with .Values.paymentService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "findery-market.labels" . | nindent 8 }}
+        {{- with .Values.paymentService.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: payment-service
+    spec:
+      {{- with .Values.paymentService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentService.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.paymentService.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.paymentService.image.repository }}:{{ .Values.paymentService.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.paymentService.image.pullPolicy }}
+          env:
+            - name: PORT
+              value: {{ .Values.paymentService.service.port | quote}}
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paymentService.env.secretName }}
+                  key: STRIPE_SECRET_KEY
+          ports:
+            - name: http
+              containerPort: {{ .Values.paymentService.service.port }}
+              protocol: TCP
+          {{- with .Values.paymentService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.paymentService.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.paymentService.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

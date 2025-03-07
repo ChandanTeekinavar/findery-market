@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "findery-market.fullname" . }}-user-service
+  labels:
+    {{- include "findery-market.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.userService.autoscaling.enabled }}
+  replicas: {{ .Values.userService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "findery-market.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: user-service
+  template:
+    metadata:
+      {{- with .Values.userService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "findery-market.labels" . | nindent 8 }}
+        {{- with .Values.userService.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: user-service
+    spec:
+      {{- with .Values.userService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.userService.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.userService.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.userService.image.repository }}:{{ .Values.userService.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.userService.image.pullPolicy }}
+          env:
+            - name: databasePassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.userService.env.secretName }}
+                  key: databasePassword
+            - name: MONGODB_URI
+              value: mongodb://{{.Values.userService.env.databaseUsername}}:$(databasePassword)@{{ .Release.Name }}-mongodb:27017/{{.Values.userService.env.databaseName}}
+            - name: PORT
+              value: {{ .Values.userService.service.port | quote}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.userService.service.port }}
+              protocol: TCP
+          {{- with .Values.userService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.userService.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.userService.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.userService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.userService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.userService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

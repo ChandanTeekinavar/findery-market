@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "findery-market.fullname" . }}-order-service
+  labels:
+    {{- include "findery-market.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.orderService.autoscaling.enabled }}
+  replicas: {{ .Values.orderService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "findery-market.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: order-service
+  template:
+    metadata:
+      {{- with .Values.orderService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "findery-market.labels" . | nindent 8 }}
+        {{- with .Values.orderService.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: order-service
+    spec:
+      {{- with .Values.orderService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.orderService.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.orderService.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.orderService.image.repository }}:{{ .Values.orderService.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.orderService.image.pullPolicy }}
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{.Values.orderService.env.databaseName}}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.orderService.env.databaseUsername}}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.orderService.env.secretName }}
+                  key: SPRING_DATASOURCE_PASSWORD
+            - name: JWT_SECRET
+              value: M4cMvSpjc9QjGTtyx17RT24FaYH8wVDqViOFtI0dI+4=
+          ports:
+            - name: http
+              containerPort: {{ .Values.orderService.service.port }}
+              protocol: TCP
+          {{- with .Values.orderService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.orderService.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.orderService.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.orderService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.orderService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.orderService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

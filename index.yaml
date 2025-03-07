@@ -1,0 +1,23 @@
+apiVersion: v1
+entries:
+  findery-market:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-03-07T16:20:15.547878861+05:30"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.4.5
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.4.16
+    description: A Helm chart for Kubernetes
+    digest: 5cc8d3049193711f15e19ab701ab671dcd7669e02cc55c0bed873cb55d4266d0
+    name: findery-market
+    type: application
+    urls:
+    - findery-market-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-03-07T16:20:15.534511115+05:30"
