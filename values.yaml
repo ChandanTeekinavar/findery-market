@@ -128,7 +128,7 @@ userService:
 postgresql:
   enabled: true
   global:
-    storageClass: "local-path"
+    storageClass: "standard"
   primary:
     initdb:
       scripts:
@@ -190,7 +190,7 @@ postgresql:
     extraEnvVarsSecret: "postgres-secret"
     persistence:
       enabled: true
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 5Gi
   auth:
     username: postgres
@@ -455,11 +455,6 @@ paymentService:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
-  
-  env:
-  # You need to add STRIPE_SECRET_KEY for payment service
-  # add the database password in the secret file with key "STRIPE_SECRET_KEY"
-    secretName: payment-service-secret
 
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/

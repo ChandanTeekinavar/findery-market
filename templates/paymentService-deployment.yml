@@ -45,10 +45,7 @@ spec:
             - name: PORT
               value: {{ .Values.paymentService.service.port | quote}}
             - name: STRIPE_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.paymentService.env.secretName }}
-                  key: STRIPE_SECRET_KEY
+              value: sk_test_51Qkk7gLhrYUthfGZ10y1wHFOtnNavtjqjT8BFXs3im30dkBTUwDBxdt0KraKShW8g6O90raGWmFbOGZsW8rOS7Pv00B7jNEYZR
           ports:
             - name: http
               containerPort: {{ .Values.paymentService.service.port }}
