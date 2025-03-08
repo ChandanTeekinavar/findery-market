@@ -3,7 +3,7 @@ entries:
   findery-market:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-03-07T16:20:15.547878861+05:30"
+    created: "2025-03-09T01:53:27.4573425+05:30"
     dependencies:
     - condition: mongodb.enabled
       name: mongodb
@@ -14,10 +14,98 @@ entries:
       repository: https://charts.bitnami.com/bitnami
       version: 16.4.16
     description: A Helm chart for Kubernetes
-    digest: 5cc8d3049193711f15e19ab701ab671dcd7669e02cc55c0bed873cb55d4266d0
+    digest: 4f14fe4f4eb837cbd40c8015c3d1ce7d2c0b36427cc6b568792031b3802bdb19
     name: findery-market
     type: application
     urls:
     - findery-market-0.1.0.tgz
     version: 0.1.0
-generated: "2025-03-07T16:20:15.534511115+05:30"
+  mongodb:
+  - annotations:
+      category: Database
+      images: |
+        - name: kubectl
+          image: docker.io/bitnami/kubectl:1.32.2-debian-12-r3
+        - name: mongodb
+          image: docker.io/bitnami/mongodb:8.0.5-debian-12-r0
+        - name: mongodb-exporter
+          image: docker.io/bitnami/mongodb-exporter:0.43.1-debian-12-r9
+        - name: nginx
+          image: docker.io/bitnami/nginx:1.27.4-debian-12-r4
+        - name: os-shell
+          image: docker.io/bitnami/os-shell:12-debian-12-r39
+      licenses: Apache-2.0
+    apiVersion: v2
+    appVersion: 8.0.5
+    created: "2025-03-09T01:53:27.4621989+05:30"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: MongoDB(R) is a relational open source NoSQL database. Easy to use,
+      it stores data in JSON-like documents. Automated scalability and high-performance.
+      Ideal for developing cloud native applications.
+    digest: a48da66b8bf01e488bbc07302297c30f39022308f043635116313ed8d11e9fee
+    home: https://bitnami.com
+    icon: https://dyltqmyl993wv.cloudfront.net/assets/stacks/mongodb/img/mongodb-stack-220x234.png
+    keywords:
+    - mongodb
+    - database
+    - nosql
+    - cluster
+    - replicaset
+    - replication
+    maintainers:
+    - name: Broadcom, Inc. All Rights Reserved.
+      url: https://github.com/bitnami/charts
+    name: mongodb
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/mongodb
+    urls:
+    - charts/mongodb-16.4.5.tgz
+    version: 16.4.5
+  postgresql:
+  - annotations:
+      category: Database
+      images: |
+        - name: os-shell
+          image: docker.io/bitnami/os-shell:12-debian-12-r39
+        - name: postgres-exporter
+          image: docker.io/bitnami/postgres-exporter:0.17.1-debian-12-r0
+        - name: postgresql
+          image: docker.io/bitnami/postgresql:17.4.0-debian-12-r4
+      licenses: Apache-2.0
+    apiVersion: v2
+    appVersion: 17.4.0
+    created: "2025-03-09T01:53:27.4670831+05:30"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: PostgreSQL (Postgres) is an open source object-relational database
+      known for reliability and data integrity. ACID-compliant, it supports foreign
+      keys, joins, views, triggers and stored procedures.
+    digest: 56ab23a68670d5c3d0b82aad62a3648d66c2218dff450dbd16d987dc7fa760d0
+    home: https://bitnami.com
+    icon: https://dyltqmyl993wv.cloudfront.net/assets/stacks/postgresql/img/postgresql-stack-220x234.png
+    keywords:
+    - postgresql
+    - postgres
+    - database
+    - sql
+    - replication
+    - cluster
+    maintainers:
+    - name: Broadcom, Inc. All Rights Reserved.
+      url: https://github.com/bitnami/charts
+    name: postgresql
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+    urls:
+    - charts/postgresql-16.4.16.tgz
+    version: 16.4.16
+generated: "2025-03-09T01:53:27.4458213+05:30"
